@@ -1,24 +1,19 @@
+
 {
   "name": "employee_management",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
+  "description": "Employee Management API",
+  "main": "src/server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/server.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node --test",
+    "create-admin": "node src/script/create-admin.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
-  "script": {
-    "start": "nodemon src/server.js",
-    "dev": "nodemon src/server.js",
-    "test": "node --test"
-  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.8",

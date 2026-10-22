@@ -1,23 +1,32 @@
-import {verifytoken} from '../utils/jwt.js'
-import {getUserById} from '../repositories/user.repository.js'
+import { verifyToken } from "../utils/jwt.js";
+import { getUserById } from "../repositories/user.repository.js";
 
-export async function Authmiddleware(req , res , next){
+export async function Authmiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
-  if(!authHeader || !authHeader.startsWith('Bearer ')){
-    return res.status(401).json({error:"Unauthorized"});
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
-  const token = authHeader.split(' ')[1];
-  try{
-    const decoded = verifytoken(token);
+  const token = authHeader.slice("Bearer ".length);
+  let decoded;
+  try {
+    decoded = verifyToken(token);
+  } catch {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (!decoded || typeof decoded !== "object" || typeof decoded.sub !== "string") {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
     const user = await getUserById(decoded.sub);
-    if(!user){
-      return res.status(401).json({error:"Unauthorized"});
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
     req.user = user;
-    next(); 
-  }catch(err){
-    console.error('Error in authentication middleware:', err);
-    return res.status(401).json({error:"Unauthorized"});  
+    return next();
+  } catch (err) {
+    return next(err);
   }
 }
 

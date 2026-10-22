@@ -11,23 +11,23 @@ import {
   verifyPassword,
 } from "../utils/password.js";
 
+function createServiceError(message, statusCode) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
 
 export async function registerUser({ name, email, password }) {
   const existingUser = await getUserByEmail(email);
 
   if (existingUser) {
-    throw new Error("User with this email already exists");
+    throw createServiceError("User with this email already exists", 409);
   }
 
   const password_hash = await hashPassword(password);
 
   try {
-    const newUser = await createUser({
-      name,
-      email,
-      password_hash,
-      role: "user",
-    });
+    const newUser = await createUser(name, email, password_hash, "user");
     const safeUser = {
       id: String(newUser.id),
       name: newUser.name,
@@ -41,7 +41,7 @@ export async function registerUser({ name, email, password }) {
     };
   } catch (err) {
     if (err.code === "23505") {
-      throw new Error("User with this email already exists");
+      throw createServiceError("User with this email already exists", 409);
     }
 
     throw err;
@@ -53,7 +53,7 @@ export async function loginUser({ email, password }) {
   const user = await getUserByEmail(email);
 
   if (!user) {
-    throw new Error("Invalid email or password");
+    throw createServiceError("Invalid email or password", 401);
   }
 
   const passwordCheck = await verifyPassword(
@@ -62,7 +62,7 @@ export async function loginUser({ email, password }) {
   );
 
   if (!passwordCheck) {
-    throw new Error("Invalid email or password");
+    throw createServiceError("Invalid email or password", 401);
   }
 
   const token = generateToken(user);
@@ -85,10 +85,15 @@ export async function getUserDetailsById(id) {
   const user = await getUserById(id);
 
   if (!user) {
-    throw new Error("User not found");
+    throw createServiceError("User not found", 404);
   }
 
-  return user;
+  return {
+    id: String(user.id),
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
 }
 
 export async function createUserAsAdmin({
@@ -98,24 +103,19 @@ export async function createUserAsAdmin({
   role,
 }) {
   if (!["admin", "user"].includes(role)) {
-    throw new Error("Invalid user role");
+    throw createServiceError("Invalid user role", 400);
   }
 
   const existingUser = await getUserByEmail(email);
 
   if (existingUser) {
-    throw new Error("User with this email already exists");
+    throw createServiceError("User with this email already exists", 409);
   }
 
   const password_hash = await hashPassword(password);
 
   try {
-    const newUser = await createUser({
-      name,
-      email,
-      password_hash,
-      role,
-    });
+    const newUser = await createUser(name, email, password_hash, role);
 
     return {
       message: "User created successfully",
@@ -123,7 +123,7 @@ export async function createUserAsAdmin({
     };
   } catch (err) {
     if (err.code === "23505") {
-      throw new Error("User with this email already exists");
+      throw createServiceError("User with this email already exists", 409);
     }
 
     throw err;
@@ -133,9 +133,13 @@ export async function getCurrentUser(userId) {
   const user = await getUserById(userId);
 
   if (!user) {
-    throw new Error("User not found");
+    throw createServiceError("User not found", 404);
   }
 
-  return user;
-
+  return {
+    id: String(user.id),
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
 }
