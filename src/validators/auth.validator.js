@@ -24,3 +24,9 @@ export const adminSchema = z.object({
   password:passwordSchema,
   role:z.enum(["admin" , "user"], "role must be either admin or user"),
 }).strict()
+
+export const createAdminSchema = z.object({
+  name:z.string().trim().min(2,"name must contain at least 2 characters").max(100 , "name must not exceed 100 characters"),
+  email:emailSchema,
+  password:passwordSchema,
+}).strict()

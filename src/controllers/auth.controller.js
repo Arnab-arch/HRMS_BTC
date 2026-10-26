@@ -37,3 +37,15 @@ export async function createUser(req, res, next) {
     return next(err);
   }
 }
+
+export async function createAdmin(req, res, next) {
+  try {
+    const result = await authService.createAdminAsAdmin(req.body);
+    return res.status(201).json({
+      ...result,
+      message: "Admin created successfully",
+    });
+  } catch (err) {
+    return next(err);
+  }
+}

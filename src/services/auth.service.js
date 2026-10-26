@@ -129,6 +129,11 @@ export async function createUserAsAdmin({
     throw err;
   }
 }
+
+export async function createAdminAsAdmin({ name, email, password }) {
+  return createUserAsAdmin({ name, email, password, role: "admin" });
+}
+
 export async function getCurrentUser(userId) {
   const user = await getUserById(userId);
 

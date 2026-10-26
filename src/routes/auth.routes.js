@@ -34,4 +34,11 @@ router.post(
   validateBody(authValidator.adminSchema),
   authController.createUser,
 );
+router.post(
+  "/create-admin",
+  Authmiddleware,
+  requireAdmin,
+  validateBody(authValidator.adminSchema),
+  authController.createAdmin,
+);
 export default router;
