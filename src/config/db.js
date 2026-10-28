@@ -1,24 +1,18 @@
-import pg from 'pg';
-import { env } from "./env.js";
+import "dotenv/config"
+import mongoose from "mongoose";
 
-const { Pool } = pg;
-const pool = new Pool({
-  host: env.DB_HOST,
-  port: Number(env.DB_PORT),
-  database: env.DB_NAME,
-  user: env.DB_USER,
-  password: env.DB_PASSWORD,
-  max:20 ,
-  idleTimeoutMillis:30_000,
-  connectionTimeoutMillis: 20_000,
-});
+export async function ConnectDb() {
+  try {
+    const uri = process.env.MONGOODB_URL;
 
-pool.on("error", (err) => {
-  console.error("Unexpected error on idle client", err.message);
-})
+    if (!uri) {
+      throw new Error("MONGOODB_URL is missing");
+    }
 
-export async function PG_connection(){
-  await pool.query("SELECT NOW() AS current_time");
-  console.log("Database connected successfully");
+    await mongoose.connect(uri);
+    console.log("Connected to MongoDB successfully");
+  } catch (err) {
+    console.error("MongoDB connection failed:", err.message);
+    throw err;
+  }
 }
-export default pool;

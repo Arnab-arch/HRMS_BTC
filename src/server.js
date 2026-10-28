@@ -1,7 +1,8 @@
 import express from "express";
 import "dotenv/config"
-import { env } from "./config/env.js";
-import pool, { PG_connection } from "./config/db.js";
+import mongoose from "mongoose";
+
+import { ConnectDb } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import employeeRoutes from "./routes/employee.routes.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
@@ -18,12 +19,14 @@ app.get("/", (req, res) => {
 app.use(errorMiddleware);
 
 try {
-  await PG_connection();
+  await ConnectDb();
   app.listen(Number(PORT), () => {
     console.log(`SERVER LISTENING ON PORT:${PORT}`);
   });
 } catch (err) {
   console.error("Unable to start server:", err.message);
-  await pool.end();
+  mongoose.disconnect();
   process.exitCode = 1;
 }
+
+export default app ; 
