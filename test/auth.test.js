@@ -6,6 +6,7 @@ import {
   loginSchema,
   registerSchema,
 } from "../src/validators/auth.validator.js";
+import { getUserById } from "../src/repositories/user.repository.js";
 
 test("public registration accepts only user fields and normalizes email", () => {
   const result = registerSchema.safeParse({
@@ -71,4 +72,8 @@ test("admin creation schema validates credentials without accepting a client rol
     createAdminSchema.safeParse({ ...validAdmin, password: "short" }).success,
     false,
   );
+});
+
+test("user lookup rejects invalid MongoDB IDs without querying the database", async () => {
+  assert.equal(await getUserById("not-an-object-id"), null);
 });

@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { emailSchema } from "./auth.validator.js";
 
-const employeeStatusSchema = z.enum(["active", "inactive"]);
+const employeeStatusSchema = z.enum(["active", "inactive", "on_leave"]);
 
 export const employeeIdSchema = z.object({
-  id: z.coerce.number().int().positive(),
+  id: z.string().regex(/^[a-f\d]{24}$/i, "id must be a valid MongoDB ObjectId"),
 });
 
 export const createEmployeeSchema = z

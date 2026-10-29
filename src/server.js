@@ -25,7 +25,7 @@ try {
   });
 } catch (err) {
   console.error("Unable to start server:", err.message);
-  mongoose.disconnect();
+  await mongoose.disconnect();
   process.exitCode = 1;
 }
 

@@ -1,12 +1,8 @@
-// import pool from "../config/db.js";
+import mongoose from "mongoose";
+import Employee from "../models/employee.model.js";
 
 export async function getEmployeeByEmail(email) {
-  const result = await pool.query(
-    `SELECT id, first_name, last_name, email, department, job_title, salary, status
-     FROM employees WHERE email = $1`,
-    [email],
-  );
-  return result.rows[0] ?? null;
+  return Employee.findOne({ email }).exec();
 }
 
 export async function createEmployee({
@@ -18,132 +14,80 @@ export async function createEmployee({
   salary,
   status,
 }) {
-  const result = await pool.query(
-    `INSERT INTO employees
-      (first_name, last_name, email, department, job_title, salary, status, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-     RETURNING id, first_name, last_name, email, department, job_title, salary, status`,
-    [first_name, last_name, email, department, job_title, salary ?? null, status],
-  );
-  return result.rows[0] ?? null;
+  return Employee.create({
+    first_name,
+    last_name,
+    email,
+    department,
+    job_title,
+    salary: salary ?? null,
+    status,
+  });
 }
 
 export async function getAllEmployees() {
-  const result = await pool.query(
-    `SELECT id, first_name, last_name, email, department, job_title, salary, status
-     FROM employees`,
-  );
-  return result.rows;
+  return Employee.find().sort({ _id: 1 }).exec();
 }
 
 export async function getEmployeeById(id) {
-  const result = await pool.query(
-    `SELECT id, first_name, last_name, email, department, job_title, salary, status
-     FROM employees WHERE id = $1`,
-    [id],
-  );
-  return result.rows[0] ?? null;
+  if (!mongoose.isObjectIdOrHexString(id)) {
+    return null;
+  }
+
+  return Employee.findById(id).exec();
 }
 
 export async function updateEmployee(id, fields) {
-  const allowedFields = [
-    "first_name",
-    "last_name",
-    "email",
-    "department",
-    "job_title",
-    "salary",
-    "status",
-  ];
-
-  const updates = Object.entries(fields).filter(
-    ([key, value]) => allowedFields.includes(key) && value !== undefined,
-  );
-
-  if (updates.length === 0) {
-    throw new Error("No allowed employee fields were provided for update");
+  if (!mongoose.isObjectIdOrHexString(id)) {
+    return null;
   }
 
-  const values = updates.map(([, value]) => value);
-  const assignments = updates
-    .map(([key], index) => `"${key}" = $${index + 1}`)
-    .join(", ");
-
-  values.push(id);
-
-  const result = await pool.query(
-    `UPDATE employees SET ${assignments}, updated_at = NOW()
-     WHERE id = $${values.length}
-     RETURNING id, first_name, last_name, email, department, job_title, salary, status`,
-    values,
-  );
-  return result.rows[0] ?? null;
+  return Employee.findByIdAndUpdate(id, fields, {
+    new: true,
+    runValidators: true,
+  }).exec();
 }
 
 export async function deleteEmployee(id) {
-  const result = await pool.query(
-    `DELETE FROM employees WHERE id = $1
-     RETURNING id, first_name, last_name, email, department, job_title, salary, status`,
-    [id],
-  );
+  if (!mongoose.isObjectIdOrHexString(id)) {
+    return null;
+  }
 
-  return result.rows[0] ?? null;
+  return Employee.findByIdAndDelete(id).exec();
 }
 
 export async function getEmployees(search, filters = {}, page = 1, limit = 10) {
-  const conditions = [];
-  const values = [];
+  const query = {};
+
   if (search !== undefined && search !== "") {
-    values.push(`%${search}%`);
-    conditions.push(`
-      (first_name ILIKE $${values.length}
-       OR last_name ILIKE $${values.length}
-       OR email ILIKE $${values.length}
-       OR job_title ILIKE $${values.length})`);
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const searchRegex = new RegExp(escapedSearch, "i");
+    query.$or = [
+      { first_name: searchRegex },
+      { last_name: searchRegex },
+      { email: searchRegex },
+      { job_title: searchRegex },
+    ];
   }
-  
+
   for (const [key, value] of Object.entries(filters)) {
     if (
       ["department", "status"].includes(key) &&
       value !== undefined &&
       value !== ""
-    ){
-      values.push(value);
-      conditions.push(`${key} = $${values.length}`);
+    ) {
+      query[key] = value;
     }
-    
   }
 
-  const whereClause = conditions.length
-    ? `WHERE ${conditions.join(" AND ")}`
-    : "";
-
-  const count_total = await pool.query(
-    `SELECT COUNT(*) FROM employees ${whereClause}`,
-    values,
-  );
-
-  const total = Number(count_total.rows[0].count);
-
   const offset = (page - 1) * limit;
-
-  const queryValues = [...values, limit, offset];
-  const limitIndex = values.length + 1;
-  const offsetIndex = values.length + 2;
-
-  const result = await pool.query(
-    `SELECT id, first_name, last_name, email,
-            department, job_title, salary, status
-            FROM employees 
-            ${whereClause}
-            ORDER BY id 
-            LIMIT $${limitIndex}
-            OFFSET $${offsetIndex}`,
-    queryValues,
-  );
+  const [employees, total] = await Promise.all([
+    Employee.find(query).sort({ _id: 1 }).skip(offset).limit(limit).exec(),
+    Employee.countDocuments(query).exec(),
+  ]);
 
   return {
-    employees: result.rows,
+    employees,
     pagination: {
       page,
       limit,

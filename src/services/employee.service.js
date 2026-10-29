@@ -10,18 +10,27 @@ function safeEmployee(employee) {
   if (!employee) {
     return null;
   }
-  const { id, first_name, last_name, email, department, job_title, salary, status } =
-    employee;
+
   return {
-    id,
-    first_name,
-    last_name,
-    email,
-    department,
-    job_title,
-    salary,
-    status,
+    id: String(employee._id ?? employee.id),
+    first_name: employee.first_name,
+    last_name: employee.last_name,
+    email: employee.email,
+    department: employee.department,
+    job_title: employee.job_title,
+    salary: employee.salary ?? null,
+    status: employee.status,
   };
+}
+
+function handleEmployeeWriteError(err) {
+  if (err?.code === 11000) {
+    throw createServiceError("Employee with this email already exists", 409);
+  }
+  if (err?.name === "ValidationError") {
+    throw createServiceError(err.message, 400);
+  }
+  throw err;
 }
 
 export async function createEmployee(fields) {
@@ -33,20 +42,21 @@ export async function createEmployee(fields) {
   try {
     return safeEmployee(await employeeRepository.createEmployee(fields));
   } catch (err) {
-    if (err.code === "23505") {
-      throw createServiceError("Employee with this email already exists", 409);
-    }
-    throw err;
+    handleEmployeeWriteError(err);
   }
 }
 
 export async function getEmployees({ search, department, status, page, limit }) {
-  return employeeRepository.getEmployees(
+  const result = await employeeRepository.getEmployees(
     search,
     { department, status },
     page,
     limit,
   );
+  return {
+    ...result,
+    employees: result.employees.map(safeEmployee),
+  };
 }
 
 export async function getEmployeeById(id) {
@@ -74,10 +84,7 @@ export async function updateEmployee(id, fields) {
     const updatedEmployee = await employeeRepository.updateEmployee(id, fields);
     return safeEmployee(updatedEmployee);
   } catch (err) {
-    if (err.code === "23505") {
-      throw createServiceError("Employee with this email already exists", 409);
-    }
-    throw err;
+    handleEmployeeWriteError(err);
   }
 }
 

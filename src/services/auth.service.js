@@ -17,6 +17,19 @@ function createServiceError(message, statusCode) {
   return error;
 }
 
+function toSafeUser(user) {
+  return {
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+}
+
+function isDuplicateEmailError(err) {
+  return err?.code === 11000;
+}
+
 export async function registerUser({ name, email, password }) {
   const existingUser = await getUserByEmail(email);
 
@@ -28,19 +41,13 @@ export async function registerUser({ name, email, password }) {
 
   try {
     const newUser = await createUser(name, email, password_hash, "user");
-    const safeUser = {
-      id: String(newUser.id),
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-    };
 
     return {
       message: "User created successfully",
-      user: safeUser,
+      user: toSafeUser(newUser),
     };
   } catch (err) {
-    if (err.code === "23505") {
+    if (isDuplicateEmailError(err)) {
       throw createServiceError("User with this email already exists", 409);
     }
 
@@ -67,15 +74,8 @@ export async function loginUser({ email, password }) {
 
   const token = generateToken(user);
 
-  const safeUser = {
-    id: String(user.id),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
-
   return {
-    user: safeUser,
+    user: toSafeUser(user),
     token,
     message: "Login successful",
   };
@@ -88,12 +88,7 @@ export async function getUserDetailsById(id) {
     throw createServiceError("User not found", 404);
   }
 
-  return {
-    id: String(user.id),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
+  return toSafeUser(user);
 }
 
 export async function createUserAsAdmin({
@@ -119,10 +114,10 @@ export async function createUserAsAdmin({
 
     return {
       message: "User created successfully",
-      user: newUser,
+      user: toSafeUser(newUser),
     };
   } catch (err) {
-    if (err.code === "23505") {
+    if (isDuplicateEmailError(err)) {
       throw createServiceError("User with this email already exists", 409);
     }
 
@@ -141,10 +136,5 @@ export async function getCurrentUser(userId) {
     throw createServiceError("User not found", 404);
   }
 
-  return {
-    id: String(user.id),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
+  return toSafeUser(user);
 }

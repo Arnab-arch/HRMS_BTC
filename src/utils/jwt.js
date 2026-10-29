@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { env } from "../config/env.js";
 
 export function generateToken(user) {
-  return jwt.sign({ sub: String(user.id) }, env.JWT_SECRET, {
+  return jwt.sign({ sub: String(user._id ?? user.id) }, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN,
   });
 }

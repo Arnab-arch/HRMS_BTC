@@ -5,11 +5,7 @@ const envSchema = z.object({
     NODE_ENV: z.enum(["development", "production"]).default("development"),
     JWT_SECRET: z.string().min(1),
     JWT_EXPIRES_IN: z.string().default("1h"),
-    DB_HOST: z.string(),
-    DB_PORT: z.string().regex(/^\d+$/),
-    DB_NAME: z.string(),
-    DB_USER: z.string(),
-    DB_PASSWORD: z.string()
+    MONGOODB_URL: z.string().min(1),
 });
 
 const result = envSchema.safeParse(process.env);
