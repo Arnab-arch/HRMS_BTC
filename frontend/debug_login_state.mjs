@@ -1,0 +1,16 @@
+import { chromium } from '@playwright/test';
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage();
+page.on('console', msg => console.log('BROWSER_CONSOLE:', msg.type(), msg.text()));
+page.on('pageerror', err => console.log('PAGE_ERROR:', err.message));
+await page.goto('http://localhost:5174/login');
+console.log('before fill URL', page.url());
+await page.fill('#email', 'arnab.sheoran@gmail.com');
+await page.fill('#password', 'Change@123@12344567778888');
+console.log('before submit token', await page.evaluate(() => localStorage.getItem('hrms_token')));
+await page.click('button[type="submit"]');
+await page.waitForTimeout(2000);
+console.log('after submit URL', page.url());
+console.log('after submit token', await page.evaluate(() => localStorage.getItem('hrms_token')));
+console.log('body text', await page.locator('body').innerText());
+await browser.close();

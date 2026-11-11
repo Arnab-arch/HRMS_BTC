@@ -1,5 +1,6 @@
 import express from "express";
 import "dotenv/config";
+import cors from "cors";
 import mongoose from "mongoose";
 
 import { ConnectDb } from "./config/db.js";
@@ -10,6 +11,29 @@ import { errorMiddleware } from "./middleware/error.middleware.js";
 
 const app = express();
 app.use(express.json());
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("CORS policy does not allow this origin"));
+    },
+    credentials: true,
+  }),
+);
 
 const PORT = process.env.PORT || 5001;
 app.use("/api/auth", authRoutes);
