@@ -14,7 +14,11 @@ export async function Authmiddleware(req, res, next) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  if (!decoded || typeof decoded !== "object" || typeof decoded.sub !== "string") {
+  if (
+    !decoded ||
+    typeof decoded !== "object" ||
+    typeof decoded.sub !== "string"
+  ) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
@@ -29,6 +33,8 @@ export async function Authmiddleware(req, res, next) {
     return next(err);
   }
 }
+
+export const authMiddleware = Authmiddleware;
 
 export function requireAdmin(req, res, next) {
   if (!req.user) {

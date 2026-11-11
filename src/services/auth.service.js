@@ -1,4 +1,3 @@
-
 import {
   getUserByEmail,
   getUserById,
@@ -6,15 +5,16 @@ import {
 } from "../repositories/user.repository.js";
 
 import { generateToken } from "../utils/jwt.js";
-import {
-  hashPassword,
-  verifyPassword,
-} from "../utils/password.js";
+import { hashPassword, verifyPassword } from "../utils/password.js";
 
 function createServiceError(message, statusCode) {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
+}
+
+function normalizeEmail(email) {
+  return typeof email === "string" ? email.trim().toLowerCase() : email;
 }
 
 function toSafeUser(user) {
@@ -31,7 +31,8 @@ function isDuplicateEmailError(err) {
 }
 
 export async function registerUser({ name, email, password }) {
-  const existingUser = await getUserByEmail(email);
+  const normalizedEmail = normalizeEmail(email);
+  const existingUser = await getUserByEmail(normalizedEmail);
 
   if (existingUser) {
     throw createServiceError("User with this email already exists", 409);
@@ -40,7 +41,7 @@ export async function registerUser({ name, email, password }) {
   const password_hash = await hashPassword(password);
 
   try {
-    const newUser = await createUser(name, email, password_hash, "user");
+    const newUser = await createUser(name, normalizedEmail, password_hash, "user");
 
     return {
       message: "User created successfully",
@@ -57,16 +58,13 @@ export async function registerUser({ name, email, password }) {
 
 
 export async function loginUser({ email, password }) {
-  const user = await getUserByEmail(email);
-
+  const normalizedEmail = normalizeEmail(email);
+  const user = await getUserByEmail(normalizedEmail);
   if (!user) {
     throw createServiceError("Invalid email or password", 401);
   }
 
-  const passwordCheck = await verifyPassword(
-    password,
-    user.password_hash
-  );
+  const passwordCheck = await verifyPassword(password, user.password_hash);
 
   if (!passwordCheck) {
     throw createServiceError("Invalid email or password", 401);
@@ -91,17 +89,13 @@ export async function getUserDetailsById(id) {
   return toSafeUser(user);
 }
 
-export async function createUserAsAdmin({
-  name,
-  email,
-  password,
-  role,
-}) {
+export async function createUserAsAdmin({ name, email, password, role }) {
   if (!["admin", "user"].includes(role)) {
     throw createServiceError("Invalid user role", 400);
   }
 
-  const existingUser = await getUserByEmail(email);
+  const normalizedEmail = normalizeEmail(email);
+  const existingUser = await getUserByEmail(normalizedEmail);
 
   if (existingUser) {
     throw createServiceError("User with this email already exists", 409);
@@ -110,7 +104,7 @@ export async function createUserAsAdmin({
   const password_hash = await hashPassword(password);
 
   try {
-    const newUser = await createUser(name, email, password_hash, role);
+    const newUser = await createUser(name, normalizedEmail, password_hash, role);
 
     return {
       message: "User created successfully",
@@ -126,7 +120,8 @@ export async function createUserAsAdmin({
 }
 
 export async function createAdminAsAdmin({ name, email, password }) {
-  return createUserAsAdmin({ name, email, password, role: "admin" });
+  const normalizedEmail = normalizeEmail(email);
+  return createUserAsAdmin({ name, email: normalizedEmail, password, role: "admin" });
 }
 
 export async function getCurrentUser(userId) {

@@ -1,0 +1,445 @@
+{
+  "info": {
+    "name": "HRMS Attendance API",
+    "description": "Collection for the implemented Attendance module in HRMS_BTC. Based on the current route, controller, service, and middleware implementation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "hrms-attendance-api-2026"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000" },
+    { "key": "admin_token", "value": "" },
+    { "key": "employee_token", "value": "" },
+    { "key": "employee2_token", "value": "" },
+    { "key": "employee_id", "value": "" },
+    { "key": "employee2_id", "value": "" },
+    { "key": "attendance_id", "value": "" },
+    { "key": "work_date", "value": "2026-11-11" },
+    { "key": "start_date", "value": "2026-11-01" },
+    { "key": "end_date", "value": "2026-11-30" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Employee One\",\n  \"email\": \"employee1.attendance@example.com\",\n  \"password\": \"long-enough-password\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a normal user. This endpoint is public."
+          }
+        },
+        {
+          "name": "Login Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employee1.attendance@example.com\",\n  \"password\": \"long-enough-password\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Log in as a standard user and save the JWT to the employee_token variable."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Employee login succeeds\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property(\"token\");",
+                  "  pm.environment.set(\"employee_token\", json.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin.attendance@example.com\",\n  \"password\": \"YourStrongPassword123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Log in as admin and save the JWT to the admin_token variable."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Admin login succeeds\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property(\"token\");",
+                  "  pm.environment.set(\"admin_token\", json.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employee_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/current-user",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "current-user"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employee Attendance",
+      "item": [
+        {
+          "name": "Check In",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employee_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/check-in",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "check-in"]
+            },
+            "description": "Employee self-service check-in. No body is required."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Check-in returned attendance\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(201);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property(\"attendance\");",
+                  "  pm.expect(json.attendance).to.have.property(\"_id\");",
+                  "  pm.environment.set(\"attendance_id\", json.attendance._id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Check Out",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employee_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/check-out",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "check-out"]
+            },
+            "description": "Employee self-service check-out. No body is required."
+          }
+        },
+        {
+          "name": "View Own Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employee_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/employee?page=1&limit=10",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "employee"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "View Own Attendance by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employee_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/employee/date-range?start_date={{start_date}}&end_date={{end_date}}",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "employee", "date-range"],
+              "query": [
+                { "key": "start_date", "value": "{{start_date}}" },
+                { "key": "end_date", "value": "{{end_date}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "View Own Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employee_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/summary?start_date={{start_date}}&end_date={{end_date}}",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "summary"],
+              "query": [
+                { "key": "start_date", "value": "{{start_date}}" },
+                { "key": "end_date", "value": "{{end_date}}" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Attendance",
+      "item": [
+        {
+          "name": "Admin View All Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/admin/all?page=1&limit=10",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "admin", "all"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin View Employee Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/admin/employee/{{employee_id}}?page=1&limit=10",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "admin", "employee", "{{employee_id}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin View Employee Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/admin/employee/{{employee_id}}/summary?start_date={{start_date}}&end_date={{end_date}}",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "admin", "employee", "{{employee_id}}", "summary"],
+              "query": [
+                { "key": "start_date", "value": "{{start_date}}" },
+                { "key": "end_date", "value": "{{end_date}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin View Daily Summary By Date",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/admin/daily/{{work_date}}",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "admin", "daily", "{{work_date}}"]
+            }
+          }
+        },
+        {
+          "name": "Admin View Attendance Record by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/admin/{{attendance_id}}",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "admin", "{{attendance_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Admin Update Attendance",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"half_day\",\n  \"total_working_minutes\": 180\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/admin/{{attendance_id}}",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "admin", "{{attendance_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Admin Delete Attendance",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/admin/{{attendance_id}}",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "admin", "{{attendance_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Negative Tests",
+      "item": [
+        {
+          "name": "Unauthorized Check In",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/check-in",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "check-in"]
+            }
+          }
+        },
+        {
+          "name": "Employee Cannot Use Admin Route",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employee_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/admin/all",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "admin", "all"]
+            }
+          }
+        },
+        {
+          "name": "Missing Date Range Values",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employee_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/summary",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "summary"]
+            }
+          }
+        },
+        {
+          "name": "Invalid Update Payload",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"foo\": \"bar\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/admin/{{attendance_id}}",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "admin", "{{attendance_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "node --test",
-    "create-admin": "node src/script/create-admin.js"
+    "create-admin": "node src/script/create-admin.js",
+    "test-admin": "node src/script/check-admin.js"
   },
   "keywords": [],
   "author": "",

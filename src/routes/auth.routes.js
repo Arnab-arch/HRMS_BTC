@@ -26,7 +26,18 @@ router.post(
   validateBody(authValidator.loginSchema),
   authController.login,
 );
+
+router.get("/current-user", Authmiddleware, authController.getCurrentUser);
+router.get("/currentUser", Authmiddleware, authController.getCurrentUser);
 router.get("/CurrentUser", Authmiddleware, authController.getCurrentUser);
+
+router.post(
+  "/create-user",
+  Authmiddleware,
+  requireAdmin,
+  validateBody(authValidator.adminSchema),
+  authController.createUser,
+);
 router.post(
   "/createUser",
   Authmiddleware,
@@ -38,7 +49,15 @@ router.post(
   "/create-admin",
   Authmiddleware,
   requireAdmin,
-  validateBody(authValidator.adminSchema),
+  validateBody(authValidator.createAdminSchema),
   authController.createAdmin,
 );
+router.post(
+  "/createAdmin",
+  Authmiddleware,
+  requireAdmin,
+  validateBody(authValidator.createAdminSchema),
+  authController.createAdmin,
+);
+
 export default router;

@@ -1,18 +1,20 @@
 import express from "express";
-import "dotenv/config"
+import "dotenv/config";
 import mongoose from "mongoose";
 
 import { ConnectDb } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import employeeRoutes from "./routes/employee.routes.js";
+import attendanceRoutes from "./routes/attendance.routes.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 
 const app = express();
 app.use(express.json());
 
-const PORT = process.env.PORT || 5001 ; 
+const PORT = process.env.PORT || 5001;
 app.use("/api/auth", authRoutes);
 app.use("/api/employees", employeeRoutes);
+app.use("/api/attendance", attendanceRoutes);
 app.get("/", (req, res) => {
   res.send("EMPLOYEE_MANAGEMENT_API");
 });
@@ -29,4 +31,4 @@ try {
   process.exitCode = 1;
 }
 
-export default app ; 
+export default app;

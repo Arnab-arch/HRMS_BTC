@@ -7,6 +7,7 @@ The project focuses on backend development fundamentals, including REST API desi
 ## Features
 
 ### 1. Authentication and User Management
+
 - User registration and login.
 - Password hashing using `bcryptjs`.
 - JWT-based authentication.
@@ -16,6 +17,7 @@ The project focuses on backend development fundamentals, including REST API desi
 - Protected routes require valid authentication.
 
 ### 2. Employee Management
+
 - Create employee records.
 - Retrieve employee details by ID.
 - Retrieve the employee list.
@@ -25,6 +27,7 @@ The project focuses on backend development fundamentals, including REST API desi
 - Support employee statuses: `active`, `inactive`, and `on_leave`.
 
 ### 3. Search, Filtering, and Pagination
+
 - Search employees by supported text fields.
 - Filter employees by department and status.
 - Combine search and filters.
@@ -32,6 +35,7 @@ The project focuses on backend development fundamentals, including REST API desi
 - Return pagination metadata, including total records and total pages.
 
 ### 4. Validation and Error Handling
+
 - Request validation using Zod schemas.
 - Email normalization.
 - Validation of employee IDs, pagination parameters, and employee fields.
@@ -40,6 +44,7 @@ The project focuses on backend development fundamentals, including REST API desi
 - Protection against SQL injection through parameterized SQL queries and an allowlist for dynamic update fields.
 
 ### 5. Database
+
 - PostgreSQL database integration using the `pg` package.
 - Separate database connection configuration.
 - Parameterized database queries.
@@ -47,6 +52,7 @@ The project focuses on backend development fundamentals, including REST API desi
 - Automatic creation and update timestamps where configured.
 
 ### 6. Automated Tests
+
 The project uses Node.js's built-in test runner and `assert/strict`.
 
 Current validation tests cover:
@@ -68,18 +74,18 @@ npm test
 
 ## Tech Stack
 
-| Technology | Purpose |
-|---|---|
-| Node.js | JavaScript runtime |
-| Express.js | REST API framework |
-| PostgreSQL | Relational database |
-| `pg` | PostgreSQL client |
-| JWT (`jsonwebtoken`) | Token-based authentication |
-| `bcryptjs` | Password hashing |
-| Zod | Request validation |
-| dotenv | Environment variable management |
-| Nodemon | Development server auto-restart |
-| Node.js Test Runner | Automated testing |
+| Technology           | Purpose                         |
+| -------------------- | ------------------------------- |
+| Node.js              | JavaScript runtime              |
+| Express.js           | REST API framework              |
+| PostgreSQL           | Relational database             |
+| `pg`                 | PostgreSQL client               |
+| JWT (`jsonwebtoken`) | Token-based authentication      |
+| `bcryptjs`           | Password hashing                |
+| Zod                  | Request validation              |
+| dotenv               | Environment variable management |
+| Nodemon              | Development server auto-restart |
+| Node.js Test Runner  | Automated testing               |
 
 ## Project Structure
 
@@ -106,7 +112,7 @@ HRMS_BTC/
 └── package.json
 ```
 
-*The structure represents the current intended organization; update it if your actual files differ.*
+_The structure represents the current intended organization; update it if your actual files differ._
 
 ## Getting Started
 
@@ -208,21 +214,21 @@ The following table describes the intended API routes. Confirm the exact paths a
 
 ### Authentication
 
-| Method | Endpoint | Purpose | Access |
-|---|---|---|---|
-| POST | `/api/auth/register` | Register a user | Public |
-| POST | `/api/auth/login` | Authenticate a user | Public |
-| POST | Admin account creation route | Create a user with a specified role | Admin only |
+| Method | Endpoint                     | Purpose                             | Access     |
+| ------ | ---------------------------- | ----------------------------------- | ---------- |
+| POST   | `/api/auth/register`         | Register a user                     | Public     |
+| POST   | `/api/auth/login`            | Authenticate a user                 | Public     |
+| POST   | Admin account creation route | Create a user with a specified role | Admin only |
 
 ### Employees
 
-| Method | Endpoint | Purpose | Access |
-|---|---|---|---|
-| POST | `/api/employees` | Create an employee | Admin |
-| GET | `/api/employees` | List employees | Authenticated |
-| GET | `/api/employees/:id` | Get employee details | Authenticated |
-| PATCH | `/api/employees/:id` | Update employee details | Admin |
-| DELETE | `/api/employees/:id` | Delete an employee | Admin |
+| Method | Endpoint             | Purpose                 | Access        |
+| ------ | -------------------- | ----------------------- | ------------- |
+| POST   | `/api/employees`     | Create an employee      | Admin         |
+| GET    | `/api/employees`     | List employees          | Authenticated |
+| GET    | `/api/employees/:id` | Get employee details    | Authenticated |
+| PATCH  | `/api/employees/:id` | Update employee details | Admin         |
+| DELETE | `/api/employees/:id` | Delete an employee      | Admin         |
 
 Protected endpoints require a valid JWT in the request header:
 
@@ -356,4 +362,100 @@ GitHub: [Arnab-arch](https://github.com/Arnab-arch)
 
 ---
 
-*HRMS_BTC is an ongoing backend development project. Features and documentation will evolve as implementation and testing progress.*
+_HRMS_BTC is an ongoing backend development project. Features and documentation will evolve as implementation and testing progress._
+
+mongoose documentation and implementations :
+
+# API /Concepts :
+
+    1) mongoose.schema()     ===> define document structure
+    2) mongoose.model()      ===>compile a schema into a model
+    3)Schema.Types.objectId  ====> Define mongoDB reference
+    4) Schema.types.Mixed     ===>  store flexible data
+
+# aggregate() :
+
+Think of an aggregation pipeline as an assembly line in a factory.
+
+Data enters from one end, passes through different processing stations, and the final processed result comes out.
+[pipeline] : </Array> aggregation pipeline as an array of objects
+an array of stages
+
+# stage : is an object description of how MongoDB should transform any document coming into stages , first stage feeds document to the secong stage and so on ,
+
+# $match stage :
+
+        $match stage blocks out element that doesn satisfy the filter parameters
+
+![alt text](image.png)
+
+# $groud stage :
+
+It groups documents together and calculates aggregate values.
+
+It is similar to SQL's:
+GROUP BY
+
+# $sum :
+
+hink of $sum: 1 as:
+
+"Every document contributes one to the total."
+
+This is a common MongoDB aggregation pattern.
+
+# $eq :
+
+$eq = checks whether two values are equal.
+
+# $cond :$cond: [
+
+condition,
+valueIfTrue,
+valueIfFalse
+]
+
+$cond: [
+condition,
+valueIfTrue,
+valueIfFalse
+]
+
+# findbyIdAndUpdate
+
+Model.findByIdAndUpdate(id, update, options, callback)
+$ set : updatevalues , new : true ==> return the updated document
+% { $set: { <field1>: <value1>, ... } }
+
+Operator Purpose Typical use
+$match	  Filter documents	Find specific employees
+$group Group documents Department analytics
+$project	Shape output	API response formatting
+$sort Sort documents Top-performing employees
+$limit	Limit results	Top 10 products
+$skip Skip documents Pagination
+$count	Count documents	Total employees
+$sum Add values Total revenue
+$avg	Calculate average	Average salary
+$min Minimum value Lowest salary
+$max	Maximum value	Highest salary
+$cond Conditional logic Count present days
+$eq	Equality check	Status comparison
+$gte / $lte	Range comparisons	Date filtering
+$divide Division Convert minutes to hours
+$multiply	Multiplication	Calculate totals
+$unwind Deconstruct arrays Process order items
+$lookup	Join collections	Employee + department
+$addFields Add calculated fields Calculate age
+$set	Add/update fields	Derive values
+$facet Multiple pipelines Data + pagination count
+$switch	Multiple conditions	Grade classification
+$push Build arrays Collect employee names
+$addToSet	Unique array values	Unique departments
+$first / $last	First/last value	Latest records after sorting
+$dateToString Format dates Monthly reports
+$dateTrunc Group by date periods Weekly/monthly reports
+
+populate() is a Mongoose feature that replaces a referenced ObjectId with the corresponding document.
+
+$lookup is a MongoDB aggregation operator that joins documents from another collection inside an aggregation pipeline.

@@ -2,7 +2,10 @@ import mongoose from "mongoose";
 import Employee from "../models/employee.model.js";
 
 export async function getEmployeeByEmail(email) {
-  return Employee.findOne({ email }).exec();
+  const normalizedEmail =
+    typeof email === "string" ? email.trim().toLowerCase() : email;
+
+  return Employee.findOne({ email: normalizedEmail }).exec();
 }
 
 export async function createEmployee({
